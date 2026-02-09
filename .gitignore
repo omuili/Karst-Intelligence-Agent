@@ -1,0 +1,36 @@
+# Environment and secrets
+.env
+.env.local
+*.pem
+
+# Python
+venv/
+__pycache__/
+*.py[cod]
+*.so
+.Python
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# Tile cache (Render regenerates on demand)
+data/cache/
+
+# Node (if used)
+node_modules/
+
+# IDE / OS
+.idea/
+.vscode/
+.cursor/
+.DS_Store
+Thumbs.db
+
+# Large external folders (keep deploy small)
+agentic-sinkhole-predictor/
+Sinkhole-Intelligence-Capstone/
+
+# Exclude from repo (per request)
+DERA_Tutorial_Corrected_Guide.docx
+SUBMISSION.md

@@ -1,0 +1,482 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Karst Intelligence Agent · Florida</title>
+
+    <!-- Leaflet CSS -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <link rel="stylesheet" href="/static/css/style.css?v=6" />
+  </head>
+  <body>
+    <!-- Scan lines overlay -->
+    <div class="scan-lines"></div>
+
+    <!-- Main container -->
+    <div class="app-container">
+      <!-- Header -->
+      <header class="header">
+        <div class="header-left">
+          <div class="logo">
+            <span class="logo-icon">◉</span>
+            <span class="logo-text">KARST INTELLIGENCE AGENT</span>
+          </div>
+          <div class="location-badge">
+            <span class="location-pin">📍</span>
+            <span id="location-label">Florida</span>
+          </div>
+        </div>
+        <div class="header-right">
+          <div class="status-indicator" id="status-indicator">
+            <span class="status-dot"></span>
+            <span class="status-text">READY</span>
+          </div>
+          <div class="scan-controls">
+            <button class="btn btn-primary" id="start-scan-btn">
+              <span class="btn-icon">▶</span>
+              START AGENT
+            </button>
+            <div class="scan-mode-toggle">
+              <label class="mode-option">
+                <input type="radio" name="scan-mode" value="quick" checked />
+                <span class="mode-label">Quick Agent</span>
+                <span class="mode-badge default">✓</span>
+              </label>
+              <label class="mode-option">
+                <input type="radio" name="scan-mode" value="full" />
+                <span class="mode-label">Train + Agent</span>
+                <span class="mode-badge fire">🔥</span>
+              </label>
+              <button type="button" class="mode-option-btn" id="train-model-btn" title="Train model only (no scan)">
+                <span class="mode-label">Train model</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Main content -->
+      <main class="main-content">
+        <!-- Map container -->
+        <div class="map-container">
+          <div id="map"></div>
+
+          <!-- Scanner overlay -->
+          <div class="scanner-overlay" id="scanner-overlay">
+            <div class="scanner-beam" id="scanner-beam"></div>
+          </div>
+
+          <!-- Map controls -->
+          <div class="map-controls">
+            <button
+              class="map-ctrl-btn"
+              id="toggle-heatmap"
+              title="Toggle Heatmap"
+            >
+              <span>🔥</span>
+            </button>
+            <button
+              class="map-ctrl-btn"
+              id="toggle-features"
+              title="Toggle Sinkholes"
+            >
+              <span>📍</span>
+            </button>
+            <button
+              class="map-ctrl-btn"
+              id="toggle-basemap"
+              title="Toggle Basemap"
+            >
+              <span>🗺️</span>
+            </button>
+          </div>
+
+          <!-- Coordinates display -->
+          <div class="coords-display" id="coords-display">
+            <span class="coord-label">LAT:</span> <span id="coord-lat">--</span>
+            <span class="coord-label">LON:</span> <span id="coord-lon">--</span>
+          </div>
+          <!-- Legend and scale on map (bottom-right) -->
+          <div class="map-legend-scale-wrap">
+            <div id="map-scale" class="map-scale">Scale: —</div>
+            <div id="map-legend" class="map-legend susceptibility-legend">
+              <h4 class="legend-title">Susceptibility</h4>
+              <div class="legend-item"><span class="legend-swatch" style="background:rgb(68,1,84)"></span> Very Low (0–20%)</div>
+              <div class="legend-item"><span class="legend-swatch" style="background:rgb(59,82,139)"></span> Low (20–40%)</div>
+              <div class="legend-item"><span class="legend-swatch" style="background:rgb(33,145,140)"></span> Medium (40–60%)</div>
+              <div class="legend-item"><span class="legend-swatch" style="background:rgb(245,135,20)"></span> High (60–80%)</div>
+              <div class="legend-item"><span class="legend-swatch" style="background:rgb(220,50,30)"></span> Very High (80–100%)</div>
+              <div class="legend-note">Winter Park AOI</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Side panel -->
+        <aside class="side-panel">
+          <!-- Scan progress with phases -->
+          <section class="panel-section" id="scan-section">
+            <h3 class="section-title">
+              <span class="title-icon">◎</span>
+              SCAN PROGRESS
+            </h3>
+
+            <!-- Phase indicators -->
+            <div class="phase-indicators">
+              <div class="phase-item" id="phase-data">
+                <span class="phase-number">1</span>
+                <span class="phase-name">Data</span>
+                <span class="phase-status" id="phase-data-status">pending</span>
+              </div>
+              <div class="phase-connector"></div>
+              <div class="phase-item" id="phase-model">
+                <span class="phase-number">2</span>
+                <span class="phase-name">Model</span>
+                <span class="phase-status" id="phase-model-status"
+                  >pending</span
+                >
+              </div>
+              <div class="phase-connector"></div>
+              <div class="phase-item" id="phase-scan">
+                <span class="phase-number">3</span>
+                <span class="phase-name">Scan</span>
+                <span class="phase-status" id="phase-scan-status">pending</span>
+              </div>
+            </div>
+
+            <!-- Sequence hint -->
+            <div class="phase-hint" id="sequence-hint">
+              One click: Start Agent runs scan → AI Analysis → Monitoring (autonomous)
+            </div>
+            <!-- Current phase detail -->
+            <div class="phase-detail" id="phase-detail">
+              <span class="phase-message" id="phase-message"
+                >Click START AGENT to begin</span
+              >
+            </div>
+
+            <!-- Progress bar -->
+            <div class="progress-container">
+              <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
+                <div class="progress-glow"></div>
+              </div>
+              <div class="progress-stats">
+                <span id="tiles-processed">0</span> /
+                <span id="tiles-total">0</span> tiles
+              </div>
+            </div>
+
+            <!-- Stats -->
+            <div class="scan-stats" id="scan-stats">
+              <div class="stat-item">
+                <span class="stat-label">Elapsed</span>
+                <span class="stat-value" id="elapsed-time">00:00</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-label">Sinkholes</span>
+                <span class="stat-value" id="features-found">0</span>
+              </div>
+            </div>
+          </section>
+
+          <!-- GEMINI 3 AI ANALYSIS -->
+          <section class="panel-section" id="gemini-section">
+            <h3 class="section-title">
+              <span class="title-icon">🤖</span>
+              GEMINI 3 AI ANALYSIS
+            </h3>
+            <div class="gemini-status" id="gemini-status">
+              <div class="gemini-model-info">
+                <span class="model-badge">gemini-3-pro-preview</span>
+                <span class="status-badge" id="gemini-available">Checking...</span>
+              </div>
+              <button class="btn btn-gemini" id="start-agent-analysis" disabled>
+                <span class="btn-icon">🧠</span>
+                Run AI Analysis
+              </button>
+            </div>
+            <div class="gemini-results" id="gemini-results" style="display: none;">
+              <div class="gemini-risk-assessment">
+                <span class="risk-label">AI Risk Assessment:</span>
+                <span class="risk-value gemini-risk" id="gemini-risk-level">--</span>
+                <span class="confidence-badge" id="gemini-confidence">--</span>
+              </div>
+              <div class="gemini-reasoning" id="gemini-reasoning">
+                <h4>Analysis Reasoning</h4>
+                <p id="gemini-reasoning-text">No analysis run yet.</p>
+              </div>
+              <div class="gemini-recommendations" id="gemini-recommendations">
+                <h4>Recommendations</h4>
+                <ul id="gemini-recommendations-list"></ul>
+              </div>
+            </div>
+          </section>
+
+          <!-- LIVE DATA SOURCES -->
+          <section class="panel-section" id="data-sources-section">
+            <h3 class="section-title">
+              <span class="title-icon">📡</span>
+              LIVE DATA SOURCES
+            </h3>
+            <div class="data-sources">
+              <div class="data-source" id="src-fgs">
+                <span class="source-status pending">○</span>
+                <span class="source-name">Florida Geological Survey</span>
+                <span class="source-detail" id="src-fgs-detail"
+                  >Sinkhole inventory</span
+                >
+              </div>
+              <div class="data-source" id="src-usgs">
+                <span class="source-status pending">○</span>
+                <span class="source-name">USGS 3DEP</span>
+                <span class="source-detail" id="src-usgs-detail"
+                  >Elevation (DEM)</span
+                >
+              </div>
+              <div class="data-source" id="src-nhd">
+                <span class="source-status pending">○</span>
+                <span class="source-name">National Hydrography</span>
+                <span class="source-detail" id="src-nhd-detail"
+                  >Water features</span
+                >
+              </div>
+              <div class="data-source" id="src-geology">
+                <span class="source-status pending">○</span>
+                <span class="source-name">Karst Geology</span>
+                <span class="source-detail" id="src-geology-detail"
+                  >Limestone layers</span
+                >
+              </div>
+              <div class="data-source" id="src-sentinel">
+                <span class="source-status pending">○</span>
+                <span class="source-name">Sentinel-2 Satellite</span>
+                <span class="source-detail" id="src-sentinel-detail"
+                  >Optical imagery</span
+                >
+              </div>
+              <div class="data-source" id="src-gps">
+                <span class="source-status pending">○</span>
+                <span class="source-name">GPS FLOL (Orlando)</span>
+                <span class="source-detail" id="src-gps-detail"
+                  >Real-time movement</span
+                >
+              </div>
+            </div>
+          </section>
+
+          <!-- AGENTIC EARLY WARNING SYSTEM -->
+          <section class="panel-section" id="early-warning-section">
+            <h3 class="section-title">
+              <span class="title-icon">⚠️</span>
+              EARLY WARNING AGENT
+            </h3>
+            <div class="early-warning-content">
+              <!-- Monitoring Status -->
+              <div class="monitoring-status" id="monitoring-status">
+                <span class="status-indicator inactive" id="monitoring-indicator">●</span>
+                <span class="status-text" id="monitoring-status-text">Agent Inactive</span>
+              </div>
+              
+              <!-- Combined Risk Score Display -->
+              <div class="combined-risk-display" id="combined-risk-display" style="display: none;">
+                <div class="risk-gauge">
+                  <div class="risk-gauge-fill" id="risk-gauge-fill" style="width: 0%"></div>
+                </div>
+                <div class="risk-score-label">
+                  Combined Risk: <span id="combined-risk-score">--</span>
+                  <span class="risk-level-badge" id="risk-level-badge">NORMAL</span>
+                </div>
+                <div class="risk-components">
+                  <span class="component">Static: <span id="static-risk">--</span></span>
+                  <span class="component">Movement: <span id="movement-risk">--</span></span>
+                </div>
+              </div>
+              
+              <!-- GPS Station Data (Real-time) -->
+              <div class="gps-data-panel" id="gps-data-panel" style="display: none;">
+                <div class="data-source-header">
+                  <span class="source-icon">📡</span>
+                  <span class="source-name">GPS: <span id="gps-station-id">FLOL</span></span>
+                  <span class="source-status live" id="gps-status">LIVE</span>
+                </div>
+                <div class="gps-metrics">
+                  <div class="metric">
+                    <span class="metric-label">Vertical Velocity</span>
+                    <span class="metric-value" id="gps-velocity">--</span>
+                    <span class="metric-unit">mm/year</span>
+                  </div>
+                  <div class="metric">
+                    <span class="metric-label">Station Distance</span>
+                    <span class="metric-value" id="gps-distance">--</span>
+                    <span class="metric-unit">km</span>
+                  </div>
+                  <div class="metric">
+                    <span class="metric-label">Data Age</span>
+                    <span class="metric-value" id="gps-data-age">--</span>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Alert Thresholds -->
+              <div class="alert-thresholds">
+                <div class="threshold-item">
+                  <span class="threshold-label">🟡 WATCH</span>
+                  <span class="threshold-value">&gt;3 mm/yr</span>
+                </div>
+                <div class="threshold-item">
+                  <span class="threshold-label">🟠 WARNING</span>
+                  <span class="threshold-value">&gt;7 mm/yr</span>
+                </div>
+                <div class="threshold-item">
+                  <span class="threshold-label">🔴 CRITICAL</span>
+                  <span class="threshold-value">&gt;15 mm/yr</span>
+                </div>
+              </div>
+              
+              <!-- Control Buttons -->
+              <div class="monitoring-controls">
+                <button class="btn-monitor" id="btn-start-monitoring">
+                  <span class="btn-icon">📡</span>
+                  Start Monitoring
+                </button>
+                <button class="btn-check-now" id="btn-check-now" disabled>
+                  <span class="btn-icon">🔄</span>
+                  Check Now
+                </button>
+              </div>
+              
+              <!-- Gemini role: drafts alert text from real data only -->
+              <p class="gemini-role-note">
+                <strong>Gemini’s role:</strong> When a trigger fires, Gemini drafts the alert message from the real measurements above only. It does not generate or change any numbers.
+              </p>
+              
+              <!-- Monitoring Log -->
+              <div class="monitoring-log" id="monitoring-log">
+                <div class="log-entry info">Agent ready. Click "Start Monitoring" to begin autonomous ground movement surveillance.</div>
+              </div>
+            </div>
+          </section>
+
+          <!-- 3D TERRAIN (DEM) - Sidebar only -->
+          <section class="panel-section" id="terrain3d-section">
+            <h3 class="section-title">
+              <span class="title-icon">⛰</span> 3D TERRAIN (DEM)
+            </h3>
+            <div class="terrain-3d-actions">
+              <button type="button" class="btn btn-secondary" id="load-terrain-btn">
+                <span class="btn-icon">⛰</span> Load Terrain (DEM)
+              </button>
+              <button type="button" class="btn btn-outline terrain-btn-small" id="reset-terrain-view-btn" style="display: none;">Reset view</button>
+            </div>
+            <div class="terrain-loading" id="terrain-loading" style="display: none;">
+              <span class="terrain-loading-spinner"></span>
+              <span>Fetching elevation data…</span>
+            </div>
+            <div class="terrain-3d-container" id="terrain3d-container" style="display: none;">
+              <div id="terrain3d"></div>
+              <div class="terrain-info-panel" id="terrain-info" style="display: none;">
+                <h4>Terrain</h4>
+                <div class="terrain-stat"><span class="terrain-stat-label">Resolution</span><span class="terrain-stat-value" id="terrain-resolution">—</span></div>
+                <div class="terrain-stat"><span class="terrain-stat-label">Grid</span><span class="terrain-stat-value" id="terrain-grid-size">—</span></div>
+                <div class="terrain-stat"><span class="terrain-stat-label">Min elev</span><span class="terrain-stat-value" id="terrain-min-elev">—</span></div>
+                <div class="terrain-stat"><span class="terrain-stat-label">Max elev</span><span class="terrain-stat-value" id="terrain-max-elev">—</span></div>
+                <div class="terrain-stat"><span class="terrain-stat-label">Range</span><span class="terrain-stat-value" id="terrain-range">—</span></div>
+              </div>
+            </div>
+          </section>
+
+          <!-- INPUT FEATURES (Predictors) - Loaded from API -->
+          <section class="panel-section" id="features-section">
+            <h3 class="section-title">
+              <span class="title-icon">📊</span>
+              MODEL INPUT FEATURES
+            </h3>
+            <div class="input-features" id="input-features-container">
+              <div class="no-data-message">
+                Model not trained yet. Run training to see feature importance.
+              </div>
+            </div>
+          </section>
+
+          <!-- MODEL EVALUATION METRICS - Loaded from API -->
+          <section class="panel-section" id="metrics-section">
+            <h3 class="section-title">
+              <span class="title-icon">📈</span>
+              MODEL EVALUATION
+            </h3>
+            <div class="model-metrics" id="model-metrics-container">
+              <div class="no-data-message">
+                Model not trained yet. Metrics will appear after training.
+              </div>
+            </div>
+          </section>
+
+          <!-- Point query -->
+          <section class="panel-section">
+            <h3 class="section-title">
+              <span class="title-icon">⊕</span>
+              POINT QUERY
+            </h3>
+            <p class="section-hint">
+              Click on the map to query susceptibility at a specific location
+            </p>
+            <div class="query-result" id="query-result" style="display: none">
+              <div class="query-header">
+                <span class="query-coords" id="query-coords"></span>
+              </div>
+              <div class="query-risk" id="query-risk">
+                <span class="risk-label">Risk Level:</span>
+                <span class="risk-value" id="query-risk-value">--</span>
+              </div>
+              <div class="query-susceptibility">
+                <span class="suscept-label">Susceptibility:</span>
+                <div class="suscept-bar">
+                  <div class="suscept-fill" id="query-suscept-fill"></div>
+                </div>
+                <span class="suscept-value" id="query-suscept-value">--</span>
+              </div>
+              <div class="query-factors" id="query-factors"></div>
+            </div>
+          </section>
+        </aside>
+      </main>
+
+      <!-- Footer -->
+      <footer class="footer">
+        <div class="footer-left">
+          <span class="footer-text"
+            >Powered by XGBoost + Google Gemini | Real-time data from FGS, USGS,
+            NHD</span
+          >
+        </div>
+        <div class="footer-right">
+          <span class="footer-text" id="connection-status">● Connected</span>
+        </div>
+      </footer>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script type="importmap">
+    {"imports":{"three":"https://unpkg.com/three@0.160.0/build/three.module.js","three/addons/":"https://unpkg.com/three@0.160.0/examples/jsm/"}}
+    </script>
+    <script src="/static/js/api.js"></script>
+    <script src="/static/js/map.js"></script>
+    <script src="/static/js/scanner.js"></script>
+    <script type="module" src="/static/js/terrain3d.js?v=7"></script>
+    <script src="/static/js/app.js?v=7"></script>
+  </body>
+</html>
