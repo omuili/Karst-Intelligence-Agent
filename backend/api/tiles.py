@@ -46,12 +46,39 @@ async def ensure_data_loaded():
 @router.get("/data-status")
 async def preload_or_data_status():
     """
-    Preload all AOI data (including Sentinel-2 and ground displacement) and return status.
-    Used by the scanner UI to show which data sources were loaded (e.g. Sentinel, OPERA).
+    Preload all AOI data and generate susceptibility tiles into cache.
+    The GET /susceptibility endpoint serves only from this cache (no on-demand generation).
     """
     await ensure_data_loaded()
     engine = get_inference_engine()
     status = engine.get_loaded_data_status()
+
+    # Generate and write all tiles for the AOI at zoom 14 into cache
+    if settings.enable_tile_cache:
+        tile_size = 256
+        zoom = 14
+        west, south, east, north = WinterParkAOI.BBOX
+        aoi_bbox = (west, south, east, north)
+        tiles_dir = settings.cache_dir / "tiles"
+        tiles_dir.mkdir(parents=True, exist_ok=True)
+        tile_list = list(mercantile.tiles(west, south, east, north, zooms=[zoom]))
+        for t in tile_list:
+            bounds = mercantile.bounds(t)
+            tile_bounds = (bounds.west, bounds.south, bounds.east, bounds.north)
+            try:
+                susceptibility = await engine.predict_tile(
+                    bounds=tile_bounds,
+                    tile_size=tile_size,
+                    zoom=zoom,
+                )
+                mask = tile_pixel_mask_inside_aoi(tile_bounds, tile_size, aoi_bbox)
+                png_bytes = create_heatmap_vectorized(susceptibility, mask=mask)
+                cache_key = f"{t.z}_{t.x}_{t.y}_{tile_size}"
+                (tiles_dir / f"{cache_key}.png").write_bytes(png_bytes)
+            except Exception as e:
+                print(f"[!] Preload tile {t.z}/{t.x}/{t.y}: {e}")
+        print(f"[*] Preload: wrote {len(tile_list)} tiles to cache")
+
     return status
 
 
@@ -284,7 +311,6 @@ async def get_susceptibility_tile(
         )
     
     # When zoomed in past z=15, serve the parent tile at z=15 so the overlay does not disappear.
-    # Leaflet requests one tile per grid cell; we return the covering z=15 tile for each.
     if z > 15 and settings.enable_tile_cache:
         delta = z - 15
         x15 = x >> delta
@@ -297,7 +323,7 @@ async def get_susceptibility_tile(
                 media_type="image/png"
             )
     
-    # No cache and no parent: return transparent (do not generate).
+    # Serve only from cache; do not generate new tiles here.
     empty = np.zeros((tile_size, tile_size), dtype=np.float32)
     transparent = create_heatmap_vectorized(empty, mask=np.zeros((tile_size, tile_size), dtype=bool))
     return Response(content=transparent, media_type="image/png")

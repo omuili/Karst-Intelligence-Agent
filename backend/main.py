@@ -3,11 +3,27 @@ Sinkhole Susceptibility Scanner - Main FastAPI Application
 """
 
 # Load .env from project root first so OPENTOPOGRAPHY_API_KEY etc. are available
+import os
 from pathlib import Path
 _env_path = Path(__file__).resolve().parent.parent / ".env"
 if _env_path.exists():
     from dotenv import load_dotenv
     load_dotenv(_env_path)
+
+# Vertex AI on Render: allow credentials from env (no key file on disk)
+_creds_json = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS_JSON")
+if _creds_json and not os.environ.get("GOOGLE_APPLICATION_CREDENTIALS"):
+    import tempfile
+    import json
+    try:
+        json.loads(_creds_json)
+        _fd, _path = tempfile.mkstemp(suffix=".json", prefix="gcp-creds-")
+        with os.fdopen(_fd, "w") as f:
+            f.write(_creds_json)
+        os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = _path
+        print("[*] Vertex AI: using credentials from GOOGLE_APPLICATION_CREDENTIALS_JSON")
+    except Exception as e:
+        print(f"[!] GOOGLE_APPLICATION_CREDENTIALS_JSON invalid: {e}")
 
 import asyncio
 from contextlib import asynccontextmanager
