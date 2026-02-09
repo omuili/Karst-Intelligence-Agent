@@ -1,6 +1,6 @@
 # Render Blueprint: Karst Intelligence Agent
-# One Web Service - FastAPI serves API + static frontend
 # https://render.com/docs/blueprint-spec
+# Add GOOGLE_CLOUD_PROJECT and GCP credentials in Render Dashboard > Environment
 
 services:
   - type: web
@@ -11,6 +11,5 @@ services:
     envVars:
       - key: DEBUG
         value: "false"
-      # Add in Render Dashboard: GOOGLE_CLOUD_PROJECT (for Vertex), GCP credentials; or GEMINI_API_KEY for AI Studio
       - key: USE_VERTEX_AI
         value: "true"
