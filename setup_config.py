@@ -4,8 +4,9 @@ import os
 from pathlib import Path
 
 
+# Never put real API keys here. Use .env (gitignored) or environment variables.
 CONFIG = {
-    "GEMINI_API_KEY": "AIzaSyC9aJoyyZnfipBm6AGmeUjUVTqrm76km-M",
+    "GEMINI_API_KEY": os.environ.get("GEMINI_API_KEY", ""),
     "HOST": "0.0.0.0",
     "PORT": "8080",
     "DEBUG": "true",
@@ -56,6 +57,7 @@ if __name__ == "__main__":
     set_environment()
     
     print("\nConfiguration complete!")
-    print(f"\nGemini API Key: {CONFIG['GEMINI_API_KEY'][:20]}...")
+    key = CONFIG["GEMINI_API_KEY"]
+    print(f"\nGemini API Key: {'set (' + key[:8] + '...)' if key else 'not set (add GEMINI_API_KEY to .env)'}")
     print(f"Server will run on: http://{CONFIG['HOST']}:{CONFIG['PORT']}")
 
