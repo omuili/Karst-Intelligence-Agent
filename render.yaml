@@ -11,6 +11,6 @@ services:
     envVars:
       - key: DEBUG
         value: "false"
-      # Add in Render Dashboard: GEMINI_API_KEY, optional PLANETARY_COMPUTER_API_KEY, OPENTOPOGRAPHY_API_KEY
+      # Add in Render Dashboard: GOOGLE_CLOUD_PROJECT (for Vertex), GCP credentials; or GEMINI_API_KEY for AI Studio
       - key: USE_VERTEX_AI
-        value: "false"
+        value: "true"

@@ -8,7 +8,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
 
-os.environ.setdefault("GEMINI_API_KEY", "AIzaSyC9aJoyyZnfipBm6AGmeUjUVTqrm76km-M")
+# API key from .env or Render environment (never hardcode)
 os.environ.setdefault("HOST", "0.0.0.0")
 os.environ.setdefault("PORT", "8080")
 os.environ.setdefault("DEBUG", "true")

@@ -39,20 +39,21 @@ In the service → **Environment** tab, add:
 | Key | Required | Notes |
 |-----|----------|--------|
 | `DEBUG` | Yes | Set to `false` (disables reload and uses production mode). |
-| `GEMINI_API_KEY` | For AI | Your Gemini API key from [Google AI Studio](https://aistudio.google.com/apikey). Use this for the simplest setup. |
-| `USE_VERTEX_AI` | Optional | Set to `false` when using `GEMINI_API_KEY`. Omit or `true` only if you configure GCP (see below). |
-| `GOOGLE_CLOUD_PROJECT` | If Vertex | Your GCP project ID (only if `USE_VERTEX_AI=true`). |
+| `USE_VERTEX_AI` | For Vertex | Set to `true` when using **Gemini 3 from Vertex AI** (this app’s default). |
+| `GOOGLE_CLOUD_PROJECT` | For Vertex | Your GCP project ID (required when `USE_VERTEX_AI=true`). |
 | `GOOGLE_CLOUD_REGION` | Optional | e.g. `us-central1` (default in code). |
+| `GEMINI_API_KEY` | If AI Studio | Only if you use AI Studio instead of Vertex; then set `USE_VERTEX_AI=false`. |
 | `PLANETARY_COMPUTER_API_KEY` | Optional | For Sentinel/satellite imagery. |
 | `OPENTOPOGRAPHY_API_KEY` | Optional | For 3D terrain. |
 
-**Recommended for Render:** Use **Gemini API key** (no GCP setup):
+**Using Gemini 3 from Vertex AI (recommended for this app):**
 
 - `DEBUG=false`
-- `GEMINI_API_KEY=<your-key>`
-- `USE_VERTEX_AI=false` (or leave unset; default in code may be false depending on your config).
+- `USE_VERTEX_AI=true`
+- `GOOGLE_CLOUD_PROJECT=<your-gcp-project-id>`
+- GCP credentials: set `GOOGLE_APPLICATION_CREDENTIALS` to a path to your service account JSON on the instance, or use Render’s secret files / env if you provide credentials another way.
 
-If you use **Vertex AI** on Render, you must provide GCP credentials (e.g. a **service account JSON key** in an env var and code that loads it); Application Default Credentials are not available in Render’s environment.
+**Using AI Studio (API key) instead:** set `USE_VERTEX_AI=false` and `GEMINI_API_KEY=<your-key>`.
 
 ---
 
