@@ -138,8 +138,8 @@ async def get_config():
             "tileSize": FloridaAOI.TILE_SIZE,
         },
         "features": {
-            "geminiEnabled": bool(settings.gemini_api_key),
-            "modelTrained": (settings.base_dir / settings.ml_model_path).exists(),
+            "geminiEnabled": bool(getattr(settings, "gemini_api_key", None)),
+            "modelTrained": (settings.base_dir / getattr(settings, "ml_model_path", "models/sinkhole_susceptibility.joblib")).exists(),
         }
     }
 
@@ -159,16 +159,18 @@ print(f"    Frontend exists: {frontend_path.exists()}")
 @app.get("/", response_class=HTMLResponse)
 async def serve_frontend():
     """Serve the main frontend application"""
-    index_path = frontend_path / "index.html"
-    if index_path.exists():
-        return FileResponse(index_path)
+    try:
+        index_path = frontend_path / "index.html"
+        if index_path.exists():
+            return FileResponse(index_path)
+    except Exception as e:
+        print(f"[!] serve_frontend: {e}")
     return HTMLResponse(content=f"""
     <html>
         <head><title>Karst Intelligence Agent</title></head>
         <body>
-            <h1>Sinkhole Susceptibility Scanner</h1>
-            <p>Frontend not found at: {frontend_path}</p>
-            <p>API documentation: <a href="/docs">/docs</a></p>
+            <h1>Karst Intelligence Agent</h1>
+            <p>Frontend not found. API: <a href="/docs">/docs</a> | <a href="/api/health">/api/health</a></p>
         </body>
     </html>
     """)

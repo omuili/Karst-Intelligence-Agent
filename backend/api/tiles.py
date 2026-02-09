@@ -303,25 +303,39 @@ async def get_susceptibility_tile(
     cache_key = f"{z}_{x}_{y}_{tile_size}"
     cache_path = settings.cache_dir / "tiles" / f"{cache_key}.png"
     
-    # Serve from cache if we have this exact tile.
-    if settings.enable_tile_cache and cache_path.exists():
-        return Response(
-            content=cache_path.read_bytes(),
-            media_type="image/png"
-        )
-    
-    # When zoomed in past z=15, serve the parent tile at z=15 so the overlay does not disappear.
-    if z > 15 and settings.enable_tile_cache:
-        delta = z - 15
-        x15 = x >> delta
-        y15 = y >> delta
-        parent_key = f"15_{x15}_{y15}_{tile_size}"
-        parent_path = settings.cache_dir / "tiles" / f"{parent_key}.png"
-        if parent_path.exists():
+    # Preload generates tiles at zoom 14 only. Serve from cache (exact or parent from z=14).
+    PREFERRED_CACHE_ZOOM = 14
+    if settings.enable_tile_cache:
+        if cache_path.exists():
             return Response(
-                content=parent_path.read_bytes(),
+                content=cache_path.read_bytes(),
                 media_type="image/png"
             )
+        # When requesting z > 14, serve the z=14 parent so the overlay displays when zoomed in.
+        if z > PREFERRED_CACHE_ZOOM:
+            delta = z - PREFERRED_CACHE_ZOOM
+            x14 = x >> delta
+            y14 = y >> delta
+            parent_key = f"{PREFERRED_CACHE_ZOOM}_{x14}_{y14}_{tile_size}"
+            parent_path = settings.cache_dir / "tiles" / f"{parent_key}.png"
+            if parent_path.exists():
+                return Response(
+                    content=parent_path.read_bytes(),
+                    media_type="image/png"
+                )
+        # When requesting z < 14, serve the z=14 child that covers this tile's center so something shows when zoomed out.
+        if z < PREFERRED_CACHE_ZOOM:
+            delta = PREFERRED_CACHE_ZOOM - z
+            x14 = x << delta
+            y14 = y << delta
+            # One z=14 tile; we could serve it and Leaflet will scale (one tile for a larger area).
+            child_key = f"{PREFERRED_CACHE_ZOOM}_{x14}_{y14}_{tile_size}"
+            child_path = settings.cache_dir / "tiles" / f"{child_key}.png"
+            if child_path.exists():
+                return Response(
+                    content=child_path.read_bytes(),
+                    media_type="image/png"
+                )
     
     # Serve only from cache; do not generate new tiles here.
     empty = np.zeros((tile_size, tile_size), dtype=np.float32)

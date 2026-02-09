@@ -109,11 +109,11 @@ class SinkholeMap {
     }
 
     /**
-     * Add AOI boundary layer
+     * Add AOI boundary layer (skipped if no geojson so map still displays)
      */
     _addAOIBoundary() {
-        const geojson = this.config.aoi.geojson;
-        
+        const geojson = this.config.aoi && this.config.aoi.geojson;
+        if (!geojson) return;
         this.aoiBoundaryLayer = L.geoJSON(geojson, {
             style: {
                 color: '#00ffc8',
@@ -132,12 +132,12 @@ class SinkholeMap {
      */
     _createSusceptibilityLayer() {
         const timestamp = Date.now();
-        // Tiles only exist for z 12–15 (cached). Beyond that, scale z15 tiles so overlay does not disappear.
+        // Backend caches tiles at z=14; serves that or scaled parent/child for other zooms.
         this.susceptibilityLayer = L.tileLayer(
             `/api/tiles/susceptibility/{z}/{x}/{y}.png?t=${timestamp}&live=true`,
             {
                 opacity: 0.55,
-                maxNativeZoom: 15,
+                maxNativeZoom: 14,
                 maxZoom: this.config.map.maxZoom,
                 tileSize: 256,
                 zIndex: 100,

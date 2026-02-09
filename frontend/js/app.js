@@ -28,8 +28,18 @@ class SinkholeApp {
         console.log('Config loaded:', this.config);
       } catch (configErr) {
         console.warn('Config fetch failed, using default:', configErr);
+        const bbox = [-87.6, 24.5, -80.0, 31.0]; // [minLon, minLat, maxLon, maxLat]
         this.config = {
-          aoi: { name: 'Florida', center: [27.8, -81.8], area_km2: 170000, bbox: [-87.6, 24.5, -80.0, 31.0] },
+          aoi: {
+            name: 'Florida',
+            center: [27.8, -81.8],
+            area_km2: 170000,
+            bbox: bbox,
+            geojson: {
+              type: 'Polygon',
+              coordinates: [[[bbox[0], bbox[1]], [bbox[2], bbox[1]], [bbox[2], bbox[3]], [bbox[0], bbox[3]], [bbox[0], bbox[1]]]],
+            },
+          },
           map: { minZoom: 6, maxZoom: 18, defaultZoom: 7, tileSize: 512 },
           features: { geminiEnabled: false, modelTrained: false },
         };
