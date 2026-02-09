@@ -4,7 +4,7 @@ import os
 from pathlib import Path
 
 
-# Never put real API keys here. Use .env (gitignored) or environment variables.
+
 CONFIG = {
     "GEMINI_API_KEY": os.environ.get("GEMINI_API_KEY", ""),
     "HOST": "0.0.0.0",
