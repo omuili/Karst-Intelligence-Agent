@@ -1,3 +1,6 @@
+# Ensure build env has setuptools (needed for rasterio wheel build on some platforms)
+setuptools>=65.0.0
+
 # FastAPI and server
 fastapi==0.109.2
 uvicorn[standard]==0.27.1
