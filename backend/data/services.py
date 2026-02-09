@@ -316,6 +316,13 @@ class FloridaGeologicalSurvey:
         return karst_features
 
 
+# USGS National Map requests often 403 without a descriptive User-Agent
+USGS_HEADERS = {
+    "User-Agent": "KarstIntelligenceAgent/1.0 (sinkhole susceptibility research; olanrewaju.muili@gmail.com)",
+    "Referer": "https://github.com/omuili/Karst-Intelligence-Agent",
+}
+
+
 class USGSElevationService:
     """
     Fetch DEM data from USGS 3DEP (3D Elevation Program)
@@ -324,7 +331,7 @@ class USGSElevationService:
     """
     
     def __init__(self):
-        self.client = httpx.AsyncClient(timeout=120.0)
+        self.client = httpx.AsyncClient(timeout=120.0, headers=USGS_HEADERS)
     
     async def close(self):
         await self.client.aclose()
