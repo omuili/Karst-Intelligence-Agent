@@ -32,7 +32,7 @@ The system combines an XGBoost susceptibility model with **Google Gemini 3** for
 
 ---
 
-## 🖼 Screens for judges (from `images/`)
+## 🖼 Screenshots (from `images/`)
 
 These images correspond to what you see in the live app:
 
