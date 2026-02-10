@@ -50,7 +50,7 @@ def create_directories():
 
 
 if __name__ == "__main__":
-    print("Setting up Sinkhole Scanner configuration...\n")
+    print("Setting up Karts Intelligence Agent configuration...\n")
     
     create_directories()
     create_env_file()
