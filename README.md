@@ -10,7 +10,7 @@ The system combines an XGBoost susceptibility model with **Google Gemini 3** for
 
 ## 🌍 What this app does
 
-- Maps **sinkhole susceptibility** over Winter Park, Florida – a known sinkhole hotspot in the Central Florida karst district.
+- predicts **sinkhole susceptibility** over Winter Park, Florida – a known sinkhole hotspot in the Central Florida karst district.
 - Shows a **heatmap overlay** of predicted susceptibility with known sinkholes plotted as red points.
 - Runs a **Gemini‑powered agentic analysis** that:
   - Validates ML scan results,
