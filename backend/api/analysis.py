@@ -923,6 +923,7 @@ class AgentAnalysisStatus(BaseModel):
     completed_at: Optional[str]
     risk_level: Optional[str]
     confidence: Optional[float]
+    error: Optional[str] = None  # When status is 'failed', message for the UI
 
 
 @router.post("/agent/analyze", response_model=AgentAnalysisStatus)
@@ -936,7 +937,7 @@ async def start_agent_analysis(
     This runs a multi-step autonomous analysis pipeline:
     1. Fetch geological data from FGS
     2. Fetch satellite imagery from Planetary Computer
-    3. Analyze imagery with Gemini 3 Pro
+    3. Analyze imagery with Gemini 3 (gemini-3-pro-preview)
     4. Integrate data and assess risk
     5. Generate recommendations
     
@@ -958,6 +959,7 @@ async def start_agent_analysis(
         "completed_at": None,
         "risk_level": None,
         "confidence": None,
+        "error": None,
         "bbox": bbox,
         "include_satellite": request.include_satellite,
         "thinking_level": request.thinking_level,

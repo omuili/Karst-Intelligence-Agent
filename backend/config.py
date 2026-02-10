@@ -282,9 +282,9 @@ class ModelConfig:
 
 # Gemini configuration
 class GeminiConfig:
-    """Gemini 3 Pro API configuration for agentic sinkhole analysis"""
+    """Gemini 3 API configuration for agentic sinkhole analysis (model: gemini-3-pro-preview)"""
     
-    # Gemini 3 Pro - Most advanced reasoning model (Released Nov 18, 2025)
+    # gemini-3-pro-preview - reasoning model, multimodal (text, images, audio, video, PDF)
     # 1M token context window, multimodal (text, images, audio, video, PDF)
     MODEL_NAME = "gemini-3-pro-preview"
     

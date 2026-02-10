@@ -912,7 +912,9 @@ class SinkholeApp {
           return;
           
         } else if (status.status === 'failed') {
-          throw new Error(status.error || 'Analysis failed');
+          const errMsg = status.error || 'Analysis failed';
+          this._displayGeminiError(errMsg);
+          throw new Error(errMsg);
         }
         
         // Update UI with current step
@@ -936,6 +938,25 @@ class SinkholeApp {
   }
 
   /**
+   * Display Gemini analysis error (e.g. failed to start or backend error)
+   */
+  _displayGeminiError(message) {
+    const resultsDiv = document.getElementById('gemini-results');
+    const riskLevel = document.getElementById('gemini-risk-level');
+    const confidence = document.getElementById('gemini-confidence');
+    const reasoningText = document.getElementById('gemini-reasoning-text');
+    const recommendationsList = document.getElementById('gemini-recommendations-list');
+    if (resultsDiv) resultsDiv.style.display = 'block';
+    if (riskLevel) {
+      riskLevel.textContent = 'ERROR';
+      riskLevel.className = 'risk-value gemini-risk error';
+    }
+    if (confidence) confidence.textContent = '0% confidence';
+    if (reasoningText) reasoningText.textContent = message;
+    if (recommendationsList) recommendationsList.innerHTML = '<li>Check Gemini configuration (Vertex AI or GEMINI_API_KEY) and try again.</li>';
+  }
+
+  /**
    * Display Gemini analysis results
    */
   _displayGeminiResults(report) {
@@ -949,36 +970,47 @@ class SinkholeApp {
       resultsDiv.style.display = 'block';
     }
     
+    const level = report.risk_assessment?.level || 'unknown';
+    const conf = report.risk_assessment?.confidence ?? 0;
+    const reasoning = report.analysis_reasoning || '';
+    const noResult = (level === 'unknown' && conf === 0 && !reasoning.trim());
+    
     // Risk level
-    if (riskLevel && report.risk_assessment) {
-      const level = report.risk_assessment.level || 'unknown';
+    if (riskLevel) {
       riskLevel.textContent = level.toUpperCase().replace('_', ' ');
       riskLevel.className = `risk-value gemini-risk ${level.toLowerCase().replace('_', '-')}`;
     }
     
     // Confidence
-    if (confidence && report.risk_assessment) {
-      const conf = report.risk_assessment.confidence || 0;
+    if (confidence) {
       confidence.textContent = `${Math.round(conf * 100)}% confidence`;
     }
     
     // Reasoning
-    if (reasoningText && report.analysis_reasoning) {
-      reasoningText.textContent = report.analysis_reasoning.substring(0, 500) + 
-        (report.analysis_reasoning.length > 500 ? '...' : '');
+    if (reasoningText) {
+      if (noResult) {
+        reasoningText.textContent = 'Analysis did not produce a result. Check that Gemini is configured (Vertex AI or GEMINI_API_KEY) and try "Run AI Analysis" again.';
+      } else {
+        reasoningText.textContent = reasoning.substring(0, 500) + (reasoning.length > 500 ? '...' : '');
+      }
     }
     
     // Recommendations
-    if (recommendationsList && report.recommendations) {
+    if (recommendationsList) {
       recommendationsList.innerHTML = '';
-      report.recommendations.slice(0, 5).forEach(rec => {
+      const recs = report.recommendations || [];
+      if (recs.length === 0 && noResult) {
         const li = document.createElement('li');
-        li.textContent = rec;
-        if (rec.includes('[HIGH]')) {
-          li.className = 'high-priority';
-        }
+        li.textContent = 'Ensure USE_VERTEX_AI=true and GOOGLE_CLOUD_PROJECT (and credentials) are set, or set GEMINI_API_KEY for AI Studio.';
         recommendationsList.appendChild(li);
-      });
+      } else {
+        recs.slice(0, 5).forEach(rec => {
+          const li = document.createElement('li');
+          li.textContent = typeof rec === 'string' ? rec : String(rec);
+          if (typeof rec === 'string' && rec.includes('[HIGH]')) li.className = 'high-priority';
+          recommendationsList.appendChild(li);
+        });
+      }
     }
   }
 
@@ -1276,7 +1308,7 @@ class SinkholeApp {
       
       <div class="hybrid-model-info">
         <small>
-          ML: XGBoost | AI: ${validation.model_info?.ai_validator || 'Gemini 3 Pro Preview'}
+          ML: XGBoost | AI: ${validation.model_info?.ai_validator || 'gemini-3-pro-preview'}
         </small>
       </div>
     `;

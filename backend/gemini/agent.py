@@ -1,7 +1,7 @@
 """
 Gemini 3 Agentic Analysis System for Sinkhole Detection
 
-This module implements an autonomous multi-step analysis pipeline using Gemini 3 Pro.
+This module implements an autonomous multi-step analysis pipeline using Gemini 3 (gemini-3-pro-preview).
 It coordinates satellite imagery analysis, risk assessment, and report generation.
 
 Key Features:
@@ -70,7 +70,7 @@ class AnalysisReport:
 
 class GeminiAgentClient:
     """
-    Gemini 3 Pro client with agentic capabilities
+    Gemini 3 client (gemini-3-pro-preview) with agentic capabilities
     
     Supports both:
     - Google AI Studio (API key) - for testing/development
@@ -114,7 +114,7 @@ class GeminiAgentClient:
             # Use the new Google Gen AI SDK for Gemini 3 support
             from google import genai
             
-            # Gemini 3 Pro Preview requires "global" location
+            # gemini-3-pro-preview requires "global" location
             # This is independent of your org's default region
             gemini_location = "global"
             
@@ -832,6 +832,9 @@ Provide your assessment as JSON:
             step.status = "failed"
             step.error = str(e)
             print(f"  ✗ Failed: {e}")
+            self.current_report.overall_risk_level = "error"
+            self.current_report.confidence = 0.0
+            self.current_report.analysis_reasoning += f"\n\nRisk assessment step failed: {str(e)}"
         
         step.completed_at = datetime.utcnow()
     

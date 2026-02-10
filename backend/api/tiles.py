@@ -53,31 +53,35 @@ async def preload_or_data_status():
     engine = get_inference_engine()
     status = engine.get_loaded_data_status()
 
-    # Generate and write all tiles for the AOI at zoom 14 into cache
+    # Serve only pre-made tiles from cache; do not overwrite if tiles already exist (deploy ships data/cache/tiles).
     if settings.enable_tile_cache:
-        tile_size = 256
-        zoom = 14
-        west, south, east, north = WinterParkAOI.BBOX
-        aoi_bbox = (west, south, east, north)
         tiles_dir = settings.cache_dir / "tiles"
         tiles_dir.mkdir(parents=True, exist_ok=True)
-        tile_list = list(mercantile.tiles(west, south, east, north, zooms=[zoom]))
-        for t in tile_list:
-            bounds = mercantile.bounds(t)
-            tile_bounds = (bounds.west, bounds.south, bounds.east, bounds.north)
-            try:
-                susceptibility = await engine.predict_tile(
-                    bounds=tile_bounds,
-                    tile_size=tile_size,
-                    zoom=zoom,
-                )
-                mask = tile_pixel_mask_inside_aoi(tile_bounds, tile_size, aoi_bbox)
-                png_bytes = create_heatmap_vectorized(susceptibility, mask=mask)
-                cache_key = f"{t.z}_{t.x}_{t.y}_{tile_size}"
-                (tiles_dir / f"{cache_key}.png").write_bytes(png_bytes)
-            except Exception as e:
-                print(f"[!] Preload tile {t.z}/{t.x}/{t.y}: {e}")
-        print(f"[*] Preload: wrote {len(tile_list)} tiles to cache")
+        existing = list(tiles_dir.glob("*.png"))
+        if existing:
+            print(f"[*] Preload: using {len(existing)} existing tiles (no generation)")
+        else:
+            tile_size = 256
+            zoom = 14
+            west, south, east, north = WinterParkAOI.BBOX
+            aoi_bbox = (west, south, east, north)
+            tile_list = list(mercantile.tiles(west, south, east, north, zooms=[zoom]))
+            for t in tile_list:
+                bounds = mercantile.bounds(t)
+                tile_bounds = (bounds.west, bounds.south, bounds.east, bounds.north)
+                try:
+                    susceptibility = await engine.predict_tile(
+                        bounds=tile_bounds,
+                        tile_size=tile_size,
+                        zoom=zoom,
+                    )
+                    mask = tile_pixel_mask_inside_aoi(tile_bounds, tile_size, aoi_bbox)
+                    png_bytes = create_heatmap_vectorized(susceptibility, mask=mask)
+                    cache_key = f"{t.z}_{t.x}_{t.y}_{tile_size}"
+                    (tiles_dir / f"{cache_key}.png").write_bytes(png_bytes)
+                except Exception as e:
+                    print(f"[!] Preload tile {t.z}/{t.x}/{t.y}: {e}")
+            print(f"[*] Preload: wrote {len(tile_list)} tiles to cache")
 
     return status
 

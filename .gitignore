@@ -14,8 +14,9 @@ __pycache__/
 dist/
 build/
 
-# Tile cache (Render regenerates on demand)
-data/cache/
+# Runtime cache (opera, gps) - not the pre-made tiles
+data/cache/opera/
+data/cache/gps/
 
 # Node (if used)
 node_modules/
