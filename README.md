@@ -4,7 +4,6 @@ An autonomous AI-powered web application for sinkhole susceptibility mapping and
 
 **Target Area:** Winter Park, Florida (Central Florida Karst Region)
 
-> **Contest submission:** See [SUBMISSION.md](SUBMISSION.md) for the Gemini integration description, project link, repo, and demo video checklist.
 
 ## 🏗️ Architecture
 
@@ -43,7 +42,7 @@ An autonomous AI-powered web application for sinkhole susceptibility mapping and
 
 ```bash
 # Clone and enter directory
-cd sinkhole-scanner
+cd karst-intelligence-agent
 
 # Create virtual environment
 python -m venv venv
@@ -54,7 +53,7 @@ pip install -r requirements.txt
 
 # Set up environment variables
 cp .env.example .env
-# Edit .env with your API keys
+
 
 # Download initial data for Winter Park AOI
 python -m backend.data.download_data
@@ -66,13 +65,7 @@ python -m backend.main
 ### Access the App
 Open http://localhost:8000 in your browser
 
-### Deploy on Render
-One Web Service runs the full app (API + frontend). See **[docs/DEPLOY_RENDER.md](docs/DEPLOY_RENDER.md)** for:
-- Build command: `pip install -r requirements.txt`
-- Start command: `uvicorn backend.main:app --host 0.0.0.0 --port $PORT`
-- Required env vars: `DEBUG=false`, `GEMINI_API_KEY` (or Vertex AI settings)
 
-You can use the **render.yaml** blueprint in the repo root to create the service, then set secrets in the Render dashboard.
 
 ## 📊 Data Sources
 
@@ -104,33 +97,33 @@ Gemini is used for:
 ```
 sinkhole-scanner/
 ├── backend/
-│   ├── main.py              # FastAPI application
-│   ├── config.py            # Configuration & AOI settings
+│   ├── main.py              
+│   ├── config.py          
 │   ├── api/
-│   │   ├── tiles.py         # Tile serving endpoints
-│   │   ├── analysis.py      # Analysis endpoints
-│   │   └── websocket.py     # Progress streaming
+│   │   ├── tiles.py       
+│   │   ├── analysis.py     
+│   │   └── websocket.py  
 │   ├── ml/
-│   │   ├── features.py      # Feature engineering
-│   │   ├── model.py         # XGBoost model
-│   │   └── inference.py     # Inference pipeline
+│   │   ├── features.py   
+│   │   ├── model.py        
+│   │   └── inference.py    
 │   ├── gemini/
-│   │   ├── client.py        # Gemini API client
-│   │   └── prompts.py       # Prompt templates
+│   │   ├── client.py     
+│   │   └── prompts.py    
 │   └── data/
-│       ├── download_data.py # Data fetching utilities
-│       └── preprocessing.py # Data preprocessing
+│       ├── download_data.py
+│       └── preprocessing.py
 ├── frontend/
-│   ├── index.html           # Main application
+│   ├── index.html         
 │   ├── css/
-│   │   └── style.css        # Styling
+│   │   └── style.css  
 │   └── js/
-│       ├── app.js           # Main application logic
-│       ├── map.js           # Map initialization
-│       ├── scanner.js       # Scanner animation
-│       └── api.js           # API client
-├── data/                    # Downloaded/cached data
-├── models/                  # Trained models
+│       ├── app.js         
+│       ├── map.js         
+│       ├── scanner.js     
+│       └── api.js          
+├── data/                  
+├── models/               
 ├── requirements.txt
 ├── .env.example
 └── README.md
