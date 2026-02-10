@@ -57,7 +57,7 @@ class Settings(BaseSettings):
             self._clear_tile_cache()
     
     def _clear_tile_cache(self):
-          tiles_dir = self.cache_dir / "tiles"
+        tiles_dir = self.cache_dir / "tiles"
         if tiles_dir.exists():
             count = 0
             for tile_file in tiles_dir.glob("*.png"):
