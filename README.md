@@ -3,7 +3,7 @@
 An autonomous AI‑powered web application for **sinkhole susceptibility mapping and early warning**, focused on the Winter Park, Florida karst district.  
 The system combines an XGBoost susceptibility model with **Google Gemini 3** for validation, explanation, continuous monitoring, and alert drafting.
 
-**Live demo:** `https://karst-intelligence-agent.onrender.com/`  
+**Live demo:** [https://karst-intelligence-agent.onrender.com/](https://karst-intelligence-agent.onrender.com/)  
 > Hosted on a free Render instance – after 15+ minutes of inactivity, the service hibernates and may take **30–60 seconds** to wake up before responding to the first request.
 
 ---
@@ -22,26 +22,36 @@ The system combines an XGBoost susceptibility model with **Google Gemini 3** for
 
 ---
 
+## 📊 Data sources (including ground movement)
+
+- **Florida Geological Survey** – historical sinkhole inventory and karst geology.  
+- **USGS 3DEP DEM** – 10 m elevation model for terrain and depressions.  
+- **National Hydrography Dataset (NHD)** – lakes and surface water features.  
+- **Karst / limestone units** – proximity to karst geology in the Central Florida karst district.  
+- **Ground movement (GPS‑style)** – vertical velocity and distance for a nearby GPS station (e.g. FLOL, Orlando), used in the combined risk score and early‑warning triggers.
+
+---
+
 ## 🖼 Screens for judges (from `images/`)
 
 These images correspond to what you see in the live app:
 
-- `images/dashboard.png`  
+- ![Dashboard](images/dashboard.png)  
   Full‑screen **dashboard**: Florida basemap, Winter Park AOI, susceptibility legend, scan controls, and status.
 
-- `images/sinkhole_susceptibility_winter_park.png`  
+- ![Susceptibility heatmap](images/sinkhole_susceptibility_winter_park.png)  
   **Susceptibility heatmap**: XGBoost probabilities rendered as XYZ tiles, warmer colors = higher risk, with historical sinkholes as red points.
 
-- `images/gemini_risk_assessment.png`  
+- ![Gemini risk assessment](images/gemini_risk_assessment.png)  
   **Gemini AI risk panel**: risk category (e.g. VERY HIGH), confidence, narrative reasoning, and 3–5 prioritized recommendations.
 
-- `images/model_explanability.png`  
+- ![Model explainability](images/model_explanability.png)  
   **Model explainability** view: feature importance and metrics for the XGBoost model.
 
-- `images/3d_visualization.png`  
+- ![3D DEM visualization](images/3d_visualization.png)  
   **3D DEM visualization**: terrain around Winter Park to inspect depressions and drainage patterns.
 
-- `images/early_warning_agent.png`  
+- ![Early Warning Agent](images/early_warning_agent.png)  
   **Early Warning Agent**: continuous monitoring status, GPS‑style station data, combined risk score, and a Gemini‑drafted alert.
 
 These screenshots reflect the same behavior as the hosted app and a local run.
@@ -124,13 +134,8 @@ You can run the full system on a single machine.
 ### 2. Clone and create a virtual environment
 
 ```bash
-<<<<<<< HEAD
-# Clone and enter directory
-cd karst-intelligence-agent
-=======
 git clone https://github.com/omuili/Karst-Intelligence-Agent.git
 cd Karst-Intelligence-Agent
->>>>>>> ce4ec55 (Update README for judges)
 
 python -m venv venv
 # Windows:
@@ -142,13 +147,7 @@ pip install --upgrade pip
 pip install -r requirements.txt
 ```
 
-<<<<<<< HEAD
-# Set up environment variables
-cp .env.example .env
-
-=======
 ### 3. Configure `.env`
->>>>>>> ce4ec55 (Update README for judges)
 
 Create a `.env` file in the repo root.
 
@@ -198,73 +197,8 @@ python -m backend.main
 
 Then open:
 
-<<<<<<< HEAD
-
-
-## 📊 Data Sources
-
-| Layer | Source | Resolution |
-|-------|--------|------------|
-| Optical Imagery | Sentinel-2 (Copernicus) | 10m |
-| DEM | USGS 3DEP | 10m |
-| Geology | Florida Geological Survey | Vector |
-| Sinkhole Inventory | FGS Subsidence Incident Reports | Points |
-| Karst Features | USGS Karst Map | Vector |
-
-## 🤖 ML Pipeline
-
-The susceptibility model uses **XGBoost** trained on:
-- **Spectral features**: NDVI, NDWI, brightness indices
-- **Terrain features**: Slope, curvature, TWI, sink-fill depressions
-- **Geology features**: Distance to karst units, fault proximity, lithology class
-- **Hydrology**: Drainage density, distance to water bodies
-
-## 🔮 Gemini Integration
-
-Gemini is used for:
-1. **Weak labeling**: Detecting sinkhole-like depressions in imagery
-2. **Feature extraction**: Structured JSON of risk factors per tile
-3. **Quality control**: Flagging model/imagery conflicts
-
-## 📁 Project Structure
-
-```
-sinkhole-scanner/
-├── backend/
-│   ├── main.py              
-│   ├── config.py          
-│   ├── api/
-│   │   ├── tiles.py       
-│   │   ├── analysis.py     
-│   │   └── websocket.py  
-│   ├── ml/
-│   │   ├── features.py   
-│   │   ├── model.py        
-│   │   └── inference.py    
-│   ├── gemini/
-│   │   ├── client.py     
-│   │   └── prompts.py    
-│   └── data/
-│       ├── download_data.py
-│       └── preprocessing.py
-├── frontend/
-│   ├── index.html         
-│   ├── css/
-│   │   └── style.css  
-│   └── js/
-│       ├── app.js         
-│       ├── map.js         
-│       ├── scanner.js     
-│       └── api.js          
-├── data/                  
-├── models/               
-├── requirements.txt
-├── .env.example
-└── README.md
-=======
 ```text
 http://localhost:8000
->>>>>>> ce4ec55 (Update README for judges)
 ```
 
 ### 6. Suggested walkthrough
@@ -279,36 +213,6 @@ http://localhost:8000
    - The app computes a combined risk score on a schedule.  
    - When a trigger fires, Gemini drafts the full alert message, including key evidence and recommended next steps.  
 4. Let monitoring run – it will continue autonomously until you stop it.
-
----
-
-## 🧱 High‑level structure (for orientation)
-
-```text
-backend/
-  main.py          # FastAPI app, serves API + static frontend, WebSocket progress
-  config.py        # Settings, AOI definitions, Gemini config
-  api/
-    tiles.py       # Susceptibility tiles + feature tiles
-    analysis.py    # Scan, agentic analysis, monitoring, alerts
-    terrain.py     # 3D DEM endpoints
-  ml/
-    features.py        # Feature engineering
-    real_inference.py  # Real-data inference engine
-  gemini/
-    agent.py       # SinkholeAnalysisAgent, GeminiMLValidator, alert composer
-    client.py      # Low-level Gemini client wrapper (API key or Vertex)
-    prompts.py     # Prompt templates
-frontend/
-  index.html       # Main UI
-  css/style.css    # Styling
-  js/app.js        # App controller (Start Agent, monitoring, UI wiring)
-  js/map.js        # Leaflet map + overlays
-  js/scanner.js    # Scanner animation + tile sequencing
-  js/api.js        # Browser-side API client
-images/
-  *.png            # Screenshots referenced in this README
-```
 
 ---
 
